@@ -4,21 +4,6 @@
 #   BOOST_THREAD_POSIX
 #
 
-include_directories(".")
-
-if(WIN32)
-    #add_definitions(-DBOOST_TEST_DYN_LINK)
-    #add_definitions(-DBOOST_TEST_NO_MAIN)
-	
-	# disable compiler warnings
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
-	
-else()
-    
-	add_definitions(-DBOOST_TEST_DYN_LINK)
-
-endif()
-
 
 set(PDALBOOST_SOURCES
     ./libs/date_time/src/gregorian/date_generators.cpp
@@ -137,9 +122,11 @@ else()
        ./libs/thread/src/pthread/thread.cpp)
 endif(WIN32)
 
-add_library(${PDALBOOST_LIB_NAME} STATIC ${PDALBOOST_SOURCES})
+foreach (src ${PDALBOOST_SOURCES})
+    list (APPEND PDALBOOST_SOURCES_ABSOLUTE
+          "${CMAKE_CURRENT_SOURCE_DIR}/${src}")
+endforeach()
+set (PDALBOOST_SOURCES "${PDALBOOST_SOURCES_ABSOLUTE}" PARENT_SCOPE)
 
-if (UNIX AND NOT PDAL_BUILD_STATIC)
-     # Must use position independent code to link static libs into dynamic ones
-     set_target_properties(${PDALBOOST_LIB_NAME} PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
+install (DIRECTORY boost DESTINATION include/pdalboost)
+

@@ -259,36 +259,26 @@ if(Boost_FOUND)
   mark_as_advanced(CLEAR Boost_INCLUDE_DIR) 
   mark_as_advanced(CLEAR Boost_LIBRARY_DIRS) 
   link_directories(${Boost_LIBRARY_DIRS})
- 
 else()
-  set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/boost")
-
-  # find_package would normally set the following variables
-  set(Boost_FOUND TRUE)
-  set(Boost_INCLUDE_DIRS "${BOOST_ROOT}")
-
-  set(PDALBOOST_LIB_NAME "pdalboost" CACHE STRING "use embedded boost")
-  mark_as_advanced(FORCE PDALBOOST_LIB_NAME)
-
-  if (WIN32)
-    set(Boost_LIBRARIES "${PDALBOOST_LIB_NAME}.lib")
-    link_directories("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-  else()
-    # Some Cmake versions are borken here. See
-    # http://www.cmake.org/Bug/view.php?id=12258#c26851
-    # set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem")
-    # include_directories(BEFORE SYSTEM ${Boost_INCLUDE_DIRS}/)
-    set(Boost_LIBRARIES "${PDALBOOST_LIB_NAME}")
-  endif()
+  include_directories("${PROJECT_SOURCE_DIR}/boost")
 
   # this prevents auto-linking pragmas from depending on wrong lib names
   add_definitions(-DBOOST_ALL_NO_LIB)
+  if(WIN32)
+    #add_definitions(-DBOOST_TEST_DYN_LINK)
+    #add_definitions(-DBOOST_TEST_NO_MAIN)
+    # disable compiler warnings
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
+  else()
+    add_definitions(-DBOOST_TEST_DYN_LINK)
+  endif()
 
-  include_directories("${Boost_INCLUDE_DIRS}/")
-  set(PDAL_EMBED_BOOST TRUE CACHE BOOL "use embedded boost")
   add_subdirectory(boost)
+  # Embedded boost builds boost sources directly into libpdal - no additional
+  # boost libraries required.
+  unset(Boost_LIBRARIES)
   message(STATUS "Using embedded boost tree")
-endif(Boost_FOUND)
+endif()
 
 #------------------------------------------------------------------------------
 # settings for GDAL & related dependencies
